@@ -27,21 +27,21 @@ RUN RUNTIME_ARCH=$(uname -m) && \
     chmod +x /usr/local/bin/ttyd
 
 # Configure SSH Server
-RUN mkdir /var/run/sshd
+RUN mkdir -p /run/sshd
 # Yahan SSH ka password 'railway' set kiya hai (Aap badal sakte hain)
-RUN echo 'root:root' | chpasswd
+RUN echo 'root:railway' | chpasswd
 # Root login allow karein
 RUN sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config
 RUN sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
-# Create a Startup Script to run both SSHD and TTYD together
+# Create a Startup Script (Removed the --writable flag)
 RUN echo '#!/bin/bash\n\
 # Start SSH server in background\n\
 /usr/sbin/sshd\n\
-# Use Railways dynamic port, or default to 7681\n\
-PORT=${PORT:-7681}\n\
-# Start web terminal in foreground\n\
-exec /usr/local/bin/ttyd --port $PORT --writable bash\n\
+# Railway dynamic port, default to 8080\n\
+PORT=${PORT:-8080}\n\
+# Start web terminal in foreground (Writable by default now)\n\
+exec /usr/local/bin/ttyd --port $PORT bash\n\
 ' > /start.sh && chmod +x /start.sh
 
 # Start the container
